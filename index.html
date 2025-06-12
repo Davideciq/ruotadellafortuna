@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Festa Estate Farmen 2025</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff7ee;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      background-color: #fbb44c;
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+    #wheel-container {
+      position: relative;
+      margin: 20px auto;
+      width: 300px;
+      height: 300px;
+    }
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    #pointer {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 30px solid red;
+    }
+    #spinButton {
+      margin-top: 30px;
+      padding: 12px 25px;
+      background-color: #ff8855;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: green;
+    }
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    #log {
+      margin-top: 30px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Festa Estate Farmen 2025</h1>
+
+  <div id="wheel-container">
+    <img id="wheel" src="Immagine1.png.png" alt="Ruota" />
+    <div id="pointer"></div>
+  </div>
+
+  <button id="spinButton">Gira la Ruota</button>
+  <div id="result"></div>
+  <canvas class="confetti"></canvas>
+  <div id="log"></div>
+
+  <audio id="winSound" src="win.mp3" preload="auto"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const wheel = document.getElementById('wheel');
+    const spinButton = document.getElementById('spinButton');
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    const winSound = document.getElementById('winSound');
+
+    const segmentCount = 5;
+    const maxUses = 20;
+    let counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+    function updateLog() {
+      log.innerHTML = "<h3>Premi rimanenti</h3>";
+      for (let i = 1; i <= 5; i++) {
+        log.innerHTML += `Premio ${i}: ${maxUses - counts[i]} rimanenti<br>`;
+      }
+    }
+
+    function getAvailableSegments() {
+      return Object.entries(counts)
+        .filter(([key, value]) => value < maxUses)
+        .map(([key]) => parseInt(key));
+    }
+
+    function spinWheel() {
+      const available = getAvailableSegments();
+      if (available.length === 0) {
+        result.innerText = 'Tutti i premi sono esauriti!';
+        return;
+      }
+
+      const prize = available[Math.floor(Math.random() * available.length)];
+      counts[prize]++;
+      updateLog();
+
+      const segmentAngle = 360 / segmentCount;
+      const offset = segmentAngle * (prize - 1);
+      const rotation = (5 * 360) + (360 - offset - segmentAngle / 2);
+
+      wheel.style.transition = 'none';
+      wheel.style.transform = 'rotate(0deg)';
+      void wheel.offsetWidth;
+      wheel.style.transition = 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)';
+      wheel.style.transform = `rotate(${rotation}deg)`;
+
+      setTimeout(() => {
+        result.innerHTML = `Hai vinto il premio n° <b>${prize}</b>! 🎉`;
+        winSound.play();
+        launchConfetti();
+      }, 5100);
+    }
+
+    function launchConfetti() {
+      const duration = 5 * 1000;
+      const end = Date.now() + duration;
+      const interval = setInterval(() => {
+        if (Date.now() > end) return clearInterval(interval);
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }, 200);
+    }
+
+    spinButton.addEventListener('click', spinWheel);
+    updateLog();
+  </script>
+</body>
+</html>
